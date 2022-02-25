@@ -240,8 +240,7 @@ namespace Gestao_De_Equipamentos.ConsoleApp
                     equipamentoChamado[controleIndiceChamado] = nomeEquipamento[i];
 
                     Console.WriteLine("Digite a data de abertura do chamado: ");
-                    dataAberturaChamado[controleIndiceChamado] = Console.ReadLine();
-                    dateDataAberturaChamado[controleIndiceChamado] = Convert.ToDateTime(dataAberturaChamado[controleDeIndice]);
+                    dateDataAberturaChamado[controleIndiceChamado] = Convert.ToDateTime(Console.ReadLine());
                     Console.WriteLine();
 
                     Console.ForegroundColor = ConsoleColor.Green;
