@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Gestao_De_Equipamentos.ConsoleApp
 {
@@ -222,7 +223,6 @@ namespace Gestao_De_Equipamentos.ConsoleApp
 
         #region métodos
 
-        //arrumar problema
         private static void visualizarMaisDaProblema(int[] idChamado)
         {
             Console.Clear();
@@ -234,39 +234,43 @@ namespace Gestao_De_Equipamentos.ConsoleApp
             Array.Reverse(arrayChamadoAuxiliar);
 
             int contArray = 0;
+            int contVezes = 0;
 
-            for (int k = 0; k < idChamado.Length; k++)
+            for (int k = 0; k < arrayChamadoAuxiliar.Length; k++)
             {
-                if (idChamado[k] != null)
+                if (arrayChamadoAuxiliar[k] != null)
                 {
                     contArray++;
                 }
             }
 
-            int i = 0;
-            int j = 0;
+            string[] vezesProblema = new string[contArray];
 
-            while (i < contArray)
+            for (int i = 0; i < contArray; i++)
             {
-                int numero = arrayChamadoAuxiliar[i];
-                int quantidadeVezes = 0;
-
-                while (arrayChamadoAuxiliar[i] == arrayChamadoAuxiliar[j])
+                for (int j = 0; j < contArray; j++)
                 {
-                    quantidadeVezes++;
-                    j++;
-
-                    if (j == contArray) 
-                        break;
+                    if (arrayChamadoAuxiliar[i] == arrayChamadoAuxiliar[j])
+                    {
+                        contVezes++;
+                    }
                 }
 
-                string sufixo = (quantidadeVezes > 1) ? " vezes" : " vez";
+                vezesProblema[i] = "O equipamento com id " + arrayChamadoAuxiliar[i] + " deu problema " + contVezes + " vez(es).";
+                contVezes = 0;
 
-                Console.WriteLine("Equipamento com id "+numero + " deu problema " + quantidadeVezes + sufixo);
-
-                i = j;
             }
 
+            string[] retiraDuplicados = vezesProblema.Distinct().ToArray();
+
+            for (int i = 0; i < retiraDuplicados.Length; i++)
+            {
+                if (!retiraDuplicados[i].Contains("id 0")) {
+                    Console.WriteLine(retiraDuplicados[i]);
+                }
+            }
+
+            Console.WriteLine();
         }
 
         private static void visualizarChamadoFechado(string[] tituloChamado, string[] equipamentoChamado, string[] dataAberturaChamado, string[] situacaoChamado, int[] idSolicitanteChamado, DateTime[] dateDataAberturaChamado)
@@ -601,7 +605,6 @@ namespace Gestao_De_Equipamentos.ConsoleApp
             }
         }
 
-        // arrumar
         private static void cadastrarChamado(ref string[] situacaoChamado, ref int[] idChamado, ref int[] idEquipamento, ref int[] idSolicitante, ref int[] idSolicitanteChamado, ref int controleIndiceChamado, ref string[] nomeEquipamento, ref string[] numeroSerieEquipamento, ref bool[] equipamentoTemChamado, ref string[] tituloChamado, ref string[] descricaoChamado, ref string[] equipamentoChamado, ref string[] dataAberturaChamado, ref DateTime[] dateDataAberturaChamado, ref int controleDeIndice)
         {
             Console.WriteLine("Digite o id do equipamento para registrar um chamado: ");
@@ -668,9 +671,22 @@ namespace Gestao_De_Equipamentos.ConsoleApp
 
                     equipamentoChamado[controleIndiceChamado] = nomeEquipamento[i];
 
-                    Console.WriteLine("Digite a data de abertura do chamado: ");
-                    dateDataAberturaChamado[controleIndiceChamado] = Convert.ToDateTime(Console.ReadLine());
-                    Console.WriteLine();
+                    DateTime data;
+                    bool eValida;
+
+                    do
+                    {
+                        Console.WriteLine("Digite uma data de abertura do chamado válida: ");
+                        string dataFabricacao = Console.ReadLine();
+                        eValida = DateTime.TryParse(dataFabricacao, out data);
+                        Console.WriteLine();
+
+                        if (eValida == true)
+                        {
+                            dateDataAberturaChamado[controleIndiceChamado] = DateTime.Parse(dataFabricacao);
+                        }
+
+                    } while (eValida == false);
 
                     Console.WriteLine("Digite a situação do chamado (A para ABERTO ou F para FECHADO): ");
                     situacaoChamado[controleIndiceChamado] = Console.ReadLine();
@@ -866,14 +882,22 @@ namespace Gestao_De_Equipamentos.ConsoleApp
             return opcaoMenu;
         }
 
-        //verificar se data é válida
         private static string cadastrarEquipamento(ref int[] idEquipamento, ref string[] nomeEquipamento, ref decimal[] precoEquipamento, ref string[] numeroSerieEquipamento, ref string[] dataDeFabricacaoEquipamento, ref DateTime[] dateDataDeFabricacaoEquipamento, ref string[] nomeFabricanteEquipamento, ref bool[] equipamentoTemChamado, ref int controleDeIndice)
         {
             string continuar;
 
-            Console.WriteLine("Digite o id do equipamento: ");
-            idEquipamento[controleDeIndice] = int.Parse(Console.ReadLine());
+            Console.WriteLine("Digite o id do equipamento (diferente de 0): ");
+            int id = int.Parse(Console.ReadLine());
             Console.WriteLine();
+
+            while (id == 0 || idEquipamento.Contains(id))
+            {
+                Console.WriteLine("O id do equipamento digitado é igual a 0 ou já existe. Digite novamente: ");
+                id = int.Parse(Console.ReadLine());
+                Console.WriteLine();
+            }
+
+            idEquipamento[controleDeIndice] = id;
 
             Console.WriteLine("Digite o nome do equipamento: ");
             nomeEquipamento[controleDeIndice] = Console.ReadLine();
@@ -898,27 +922,35 @@ namespace Gestao_De_Equipamentos.ConsoleApp
             }
 
             Console.WriteLine("Digite o número de série do equipamento: ");
-            numeroSerieEquipamento[controleDeIndice] = Console.ReadLine();
+            string numeroSerie = Console.ReadLine();
             Console.WriteLine();
 
-
-            while (controleDeIndice != 0)
+            while (numeroSerieEquipamento.Contains(numeroSerie))
             {
-                for (int i = 0; i < numeroSerieEquipamento.Length; i++)
-                {
-                    if (numeroSerieEquipamento[controleDeIndice] == numeroSerieEquipamento[i] || numeroSerieEquipamento[controleDeIndice].Length < 1)
-                    {
-                        Console.WriteLine("O número de série digitado já existe ou não pode ser vazio. Digite novamente: ");
-                        numeroSerieEquipamento[controleDeIndice] = Console.ReadLine();
-                        Console.WriteLine();
-                        continue;
-                    }
-                }
+                Console.WriteLine("O número de série digitado já esta cadastrado. Digite novamente: ");
+                numeroSerie = Console.ReadLine();
+                Console.WriteLine();
             }
 
-            Console.WriteLine("Digite a data de fabricação do equipamento: ");
-            dateDataDeFabricacaoEquipamento[controleDeIndice] = Convert.ToDateTime(Console.ReadLine());
-            Console.WriteLine();
+            numeroSerieEquipamento[controleDeIndice] = numeroSerie;
+            
+            DateTime data;
+            bool eValida;
+
+            do
+            {
+                Console.WriteLine("Digite uma data de fabricação do equipamento válida: ");
+                string dataFabricacao = Console.ReadLine();
+                eValida = DateTime.TryParse(dataFabricacao, out data);
+                Console.WriteLine();
+                
+                if (eValida == true)
+                {
+                    dateDataDeFabricacaoEquipamento[controleDeIndice] = DateTime.Parse(dataFabricacao);
+                }
+
+            } while (eValida == false);
+
 
             Console.WriteLine("Digite o nome do fabricante do equipamento: ");
             nomeFabricanteEquipamento[controleDeIndice] = Console.ReadLine();
